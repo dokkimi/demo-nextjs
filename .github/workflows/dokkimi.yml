@@ -1,0 +1,27 @@
+name: Dokkimi Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build Docker image
+        run: docker build -t nextjs-demo:latest .
+
+      - name: Run Dokkimi tests
+        uses: dokkimi/dokkimi-action@v1
+        with:
+          tests: .dokkimi
