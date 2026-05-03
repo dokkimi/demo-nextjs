@@ -20,7 +20,7 @@
     "@types/pg": "8.11.10",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",
-    "dokkimi": "^0.2.3",
+    "dokkimi": "^0.2.4",
     "typescript": "5.7.2"
   }
 }
