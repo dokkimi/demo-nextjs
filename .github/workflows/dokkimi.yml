@@ -25,3 +25,5 @@ jobs:
         uses: dokkimi/github-action@v1.0.1
         with:
           tests: .dokkimi
+          max-parallel: 3
+          max-booting: 1
