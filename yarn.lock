@@ -1093,10 +1093,10 @@ detect-libc@^2.0.3:
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.1.2.tgz#689c5dcdc1900ef5583a4cb9f6d7b473742074ad"
   integrity sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==
 
-dokkimi@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.2.4.tgz#977f3ccd12a90f3cad4c67012efc6b2a68caff99"
-  integrity sha512-XaA6e9hqTAB4LfPvkyeGzycV/SucPiVJKlPA3H20RsNTLDeBSyX83TttEdGOpzEsRbazLmb/oRilvBPjK4aNIQ==
+dokkimi@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/dokkimi/-/dokkimi-0.2.5.tgz#9cc4336fc63d0bccf7e7be07fac7892f39aa9851"
+  integrity sha512-oYvUXU+bZjB3wjF8QnPoW842w4UEH2nxDfYwDyuXRm1NGDiZBl12RL0TodXgElZINgNMLKpf8HB874B4SaXtAQ==
   dependencies:
     "@kubernetes/client-node" "^1.4.0"
     "@nestjs/axios" "^4.0.1"
