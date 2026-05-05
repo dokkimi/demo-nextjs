@@ -14,8 +14,6 @@ items:
   - $ref: ../shared/nextjs-demo.yaml
   - $ref: ../shared/postgres.yaml
   - $ref: ../shared/mock-google-authorize.yaml
-  # Override the happy-path token mock with a failing one — same target +
-  # path + method, but returns 401 with a Google-shaped error body.
   - type: MOCK
     name: mock-google-token-failure
     description: Token exchange always fails with invalid_grant.
@@ -29,95 +27,79 @@ items:
     mockResponseBody:
       error: invalid_grant
       error_description: Authorization code expired or already used.
-  # Userinfo mock is intentionally NOT included — if the callback handler
-  # ever reaches it, the test should fail by traffic-count assertion.
 tests:
   - name: Token exchange failure surfaces an error banner and leaves the user signed out
     steps:
-      - - name: Click sign-in and follow the chain to the failure page
-          action:
-            type: ui
-            target: nextjs-demo
-            steps:
-              - visit: /login
-              - click: "[data-testid='login-google-button']"
-              # The error banner is the deterministic landing surface —
-              # callback caught the 401 from the token endpoint and 303'd
-              # back to /login?error=oauth_failed.
-              - waitFor: "[data-testid='oauth-error']"
-              # Login card with the red error banner visible. Distinct
-              # baseline from `login-page-initial` (oauth-login.yaml) —
-              # if the error banner styling drifts, this diff catches it
-              # without polluting the success-path baseline.
-              - screenshot:
-                  name: login-with-error-banner
-                  selector: "[data-testid='login-page']"
-                  match: true
-              - extract:
-                  errorPath:
-                    from: url
-                    part: pathname
-                  errorQuery:
-                    from: url
-                    part: search
-          assertions:
-            - assertions:
-                - path: $.extracted.errorPath
-                  operator: eq
-                  value: /login
-                - path: $.extracted.errorQuery
-                  operator: contains
-                  value: error=oauth_failed
-            # Authorize leg still fired (proves the redirect chain started).
-            - match:
-                method: GET
-                url: accounts.google.com/o/oauth2/v2/auth
-              count:
+      - name: Click sign-in and follow the chain to the failure page
+        action:
+          type: ui
+          target: nextjs-demo
+          steps:
+            - visit: /login
+            - click: "[data-testid='login-google-button']"
+            - waitFor: "[data-testid='oauth-error']"
+            - screenshot:
+                name: login-with-error-banner
+                selector: "[data-testid='login-page']"
+                match: true
+            - extract:
+                errorPath:
+                  from: url
+                  part: pathname
+                errorQuery:
+                  from: url
+                  part: search
+        assertions:
+          - assertions:
+              - path: $.extracted.errorPath
                 operator: eq
-                value: 1
-            # Token exchange fired and got the 401 we configured.
-            - match:
-                origin: nextjs-demo
-                method: POST
-                url: oauth2.googleapis.com/token
-              count:
+                value: /login
+              - path: $.extracted.errorQuery
+                operator: contains
+                value: error=oauth_failed
+          - match:
+              method: GET
+              url: accounts.google.com/o/oauth2/v2/auth
+            count:
+              operator: eq
+              value: 1
+          - match:
+              origin: nextjs-demo
+              method: POST
+              url: oauth2.googleapis.com/token
+            count:
+              operator: eq
+              value: 1
+            assertions:
+              - path: response.status
                 operator: eq
-                value: 1
-              assertions:
-                - path: response.status
-                  operator: eq
-                  value: 401
-            # Userinfo MUST NOT have fired — callback bailed before then.
-            # This is the assertion that proves the failure path was taken.
-            - match:
-                origin: nextjs-demo
-                method: GET
-                url: www.googleapis.com/oauth2/v3/userinfo
-              count:
+                value: 401
+          - match:
+              origin: nextjs-demo
+              method: GET
+              url: www.googleapis.com/oauth2/v3/userinfo
+            count:
+              operator: eq
+              value: 0
+      - name: Dashboard remains inaccessible after the failed sign-in
+        action:
+          type: ui
+          target: nextjs-demo
+          steps:
+            - visit: /dashboard
+            - waitFor: "[data-testid='login-page']"
+            - extract:
+                finalPath:
+                  from: url
+                  part: pathname
+                dashboardCardExists:
+                  from: exists
+                  selector: "[data-testid='dashboard-page']"
+        assertions:
+          - assertions:
+              - path: $.extracted.finalPath
                 operator: eq
-                value: 0
-      # Group 2 — confirm no session was set: visiting /dashboard
-      # still bounces to /login. (If a session had leaked through, the
-      # dashboard card would render here.)
-      - - name: Dashboard remains inaccessible after the failed sign-in
-          action:
-            type: ui
-            target: nextjs-demo
-            steps:
-              - visit: /dashboard
-              - waitFor: "[data-testid='login-page']"
-              - extract:
-                  finalPath:
-                    from: url
-                    part: pathname
-                  dashboardCardExists:
-                    from: exists
-                    selector: "[data-testid='dashboard-page']"
-          assertions:
-            - assertions:
-                - path: $.extracted.finalPath
-                  operator: eq
-                  value: /login
-                - path: $.extracted.dashboardCardExists
-                  operator: eq
-                  value: 'false'
+                value: /login
+              - path: $.extracted.dashboardCardExists
+                operator: eq
+                value: 'false'
